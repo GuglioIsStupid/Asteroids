@@ -4,6 +4,7 @@ import pygame as pg
 import random
 import math
 from os import path
+import numpy as np
 
 PlayerPolygonVertices = [(10, 0), (-10, -10), (-5, 0), (-10, 10)]
 
@@ -23,6 +24,47 @@ clock = pg.time.Clock()
 
 bulletList = []
 bulletPolygonVertices = [(0, 0), (0, 10), (10, 10), (10, 0)]
+
+# create soundaffects with sine waves
+pg.mixer.set_num_channels(8)
+# no actual sound file
+
+class SoundEffect():
+    def __init__(self, frequency, volume, duration):
+        self.frequency = frequency
+        self.volume = volume
+        self.duration = duration
+        self.channel = pg.mixer.find_channel()
+        self.channel.set_volume(self.volume)
+        self.channel.play(pg.mixer.Sound(self.buildSamples()))
+
+    def buildSamples(self):
+        sampleRate = 44100
+        numSamples = int(sampleRate * self.duration)
+        samples = np.zeros(numSamples, dtype=np.int16)
+        maxSample = 2 ** (16 - 1) - 1
+        for i in range(numSamples):
+            t = float(i) / sampleRate
+            samples[i] = int(maxSample * math.sin(2 * math.pi * self.frequency * t))
+        return samples
+    
+class NoiseSoundEffect():
+    def __init__(self, volume, duration):
+        self.volume = volume
+        self.duration = duration
+        self.channel = pg.mixer.find_channel()
+        self.channel.set_volume(self.volume)
+        self.channel.play(pg.mixer.Sound(self.buildSamples()))
+
+    def buildSamples(self):
+        sampleRate = 44100
+        numSamples = int(sampleRate * self.duration)
+        samples = np.zeros(numSamples, dtype=np.int16)
+        maxSample = 2 ** (16 - 1) - 1
+        for i in range(numSamples):
+            samples[i] = random.randrange(-maxSample, maxSample)
+        return samples
+
 class Bullet():
     def __init__(self, x, y, angle):
         self.x = x
@@ -33,6 +75,9 @@ class Bullet():
         self.width = 10
         self.height = 10
         self.alive = True
+
+        # play sound effect (high pitch, low volume, short duration)
+        #SoundEffect(880, 0.1, 0.5)
 
     def update(self):
         self.x += math.cos(math.radians(self.angle)) * self.speed
@@ -52,6 +97,7 @@ class Bullet():
             if self.collision(asteroid):
                 self.alive = False
                 AstroidList.remove(asteroid)
+                #NoiseSoundEffect(0.1, 0.1)
                 for i in range(10):
                     particle = ExplosionParticles(asteroid.x, asteroid.y, random.randrange(0, 360))
                     particleList.append(particle)
