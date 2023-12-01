@@ -221,7 +221,8 @@ class EdgeParticle():
         self.decayTimer = 1
         # colour is a changing hue dark red
         self.decayTimer = 1
-        self.colour = (random.randrange(16, 128), 0, 0)
+        shade = random.randrange(0, 100)
+        self.colour = (shade, shade, shade)
 
     def update(self):
         # decay
