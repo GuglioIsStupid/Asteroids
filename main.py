@@ -84,7 +84,26 @@ class Bullet():
         self.y += math.sin(math.radians(self.angle)) * self.speed
 
         # wrap around screen
-        if self.x > WIDTH or self.x < 0 or self.y > HEIGHT or self.y < 0:
+        # create EdgeParticle based on border it hits
+        if self.collisionTop():
+            for i in range(10):
+                particle = EdgeParticle(self.x, self.y, "top")
+                particleList.append(particle)
+            self.alive = False
+        if self.collisionBottom():
+            for i in range(10):
+                particle = EdgeParticle(self.x, self.y, "bottom")
+                particleList.append(particle)
+            self.alive = False
+        if self.collisionLeft():
+            for i in range(10):
+                particle = EdgeParticle(self.x, self.y, "right")
+                particleList.append(particle)
+            self.alive = False
+        if self.collisionRight():
+            for i in range(10):
+                particle = EdgeParticle(self.x, self.y, "left")
+                particleList.append(particle)
             self.alive = False
 
         # rotate vertices
@@ -101,6 +120,11 @@ class Bullet():
                 for i in range(10):
                     particle = ExplosionParticles(asteroid.x, asteroid.y, random.randrange(0, 360))
                     particleList.append(particle)
+
+    def collisionTop(self): return self.y < 0
+    def collisionBottom(self): return self.y > HEIGHT
+    def collisionLeft(self): return self.x < 0
+    def collisionRight(self): return self.x > WIDTH
 
     def collision(self, other):
         return self.x < other.x + other.width and self.x + self.width > other.x and self.y < other.y + other.height and self.y + self.height > other.y
@@ -173,6 +197,51 @@ class ExplosionParticles():
     def draw(self):
         # set alpha to decay timer, draw a circle
         pg.draw.circle(screen, self.colour, (int(self.x), int(self.y)), 5)
+
+class EdgeParticle():
+    def __init__(self, x, y, border="top"):
+        # determine its angle from border
+        self.angle = 0
+        if border == "top": # particles come from bottom
+            self.angle = random.randrange(0, 180)
+        elif border == "bottom": # particles come from top
+            self.angle = random.randrange(180, 360)
+        elif border == "left": # particles come from right
+            self.angle = random.randrange(90, 270)
+        elif border == "right": # particles come from left
+            self.angle = random.randrange(270, 450)
+
+        self.x = x
+        self.y = y
+        self.speed = random.randrange(1, 10)
+        self.vertices = particlePolygonVertices
+        self.width = 10
+        self.height = 10
+        self.alive = True
+        self.decayTimer = 1
+        # colour is a changing hue dark red
+        self.decayTimer = 1
+        self.colour = (random.randrange(16, 128), 0, 0)
+
+    def update(self):
+        # decay
+        self.decayTimer -= 1 / FPS
+        if self.decayTimer <= 0:
+            self.alive = False
+
+        self.x += math.cos(math.radians(self.angle)) * self.speed
+        self.y += math.sin(math.radians(self.angle)) * self.speed
+
+        # rotate vertices
+        """  self.vertices = []
+        for vertex in particlePolygonVertices:
+            rotatedVertex = self.rotatePoint(vertex[0], vertex[1], self.angle)
+            self.vertices.append((rotatedVertex[0] + self.x, rotatedVertex[1] + self.y)) """
+        
+    def draw(self):
+        # set alpha to decay timer, draw a circle
+        pg.draw.circle(screen, self.colour, (int(self.x), int(self.y)), 5)
+
 
 
 class Player():
