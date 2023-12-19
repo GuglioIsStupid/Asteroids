@@ -64,7 +64,8 @@ class NoiseSoundEffect():
         for i in range(numSamples):
             samples[i] = random.randrange(-maxSample, maxSample)
         return samples
-
+global score
+score = 0
 class Bullet():
     def __init__(self, x, y, angle):
         self.x = x
@@ -80,28 +81,29 @@ class Bullet():
         #SoundEffect(880, 0.1, 0.5)
 
     def update(self):
+        global score
         self.x += math.cos(math.radians(self.angle)) * self.speed
         self.y += math.sin(math.radians(self.angle)) * self.speed
 
         # wrap around screen
         # create EdgeParticle based on border it hits
         if self.collisionTop():
-            for i in range(10):
+            for i in range(15):
                 particle = EdgeParticle(self.x, self.y, "top")
                 particleList.append(particle)
             self.alive = False
         if self.collisionBottom():
-            for i in range(10):
+            for i in range(15):
                 particle = EdgeParticle(self.x, self.y, "bottom")
                 particleList.append(particle)
             self.alive = False
         if self.collisionLeft():
-            for i in range(10):
+            for i in range(15):
                 particle = EdgeParticle(self.x, self.y, "right")
                 particleList.append(particle)
             self.alive = False
         if self.collisionRight():
-            for i in range(10):
+            for i in range(15):
                 particle = EdgeParticle(self.x, self.y, "left")
                 particleList.append(particle)
             self.alive = False
@@ -117,7 +119,8 @@ class Bullet():
                 self.alive = False
                 AstroidList.remove(asteroid)
                 #NoiseSoundEffect(0.1, 0.1)
-                for i in range(10):
+                score += 1
+                for i in range(25):
                     particle = ExplosionParticles(asteroid.x, asteroid.y, random.randrange(0, 360))
                     particleList.append(particle)
 
@@ -256,7 +259,7 @@ class Player():
         self.maxSpeed = 5
         self.acceleration = 0.1
         self.deceleration = 0.05
-        self.rotationSpeed = 3
+        self.rotationSpeed = 6
         self.vertices = PlayerPolygonVertices
         self.shootDelay = 0.1
         self.shootTimer = 0
@@ -323,6 +326,7 @@ class Asteroid():
         self.angle = random.randrange(0, 360)
         self.speed = random.randrange(1, 5)
         self.vertices = AstroidPolygonVertices
+        self.colour = (random.randint(64, 156), 0, 0)
 
     def update(self):
         self.x += math.cos(math.radians(self.angle)) * self.speed
@@ -355,7 +359,7 @@ class Asteroid():
         return self.x < other.x + other.width and self.x + self.width > other.x and self.y < other.y + other.height and self.y + self.height > other.y
     
     def draw(self):
-        pg.draw.polygon(screen, (255, 255, 255), self.vertices)
+        pg.draw.polygon(screen, self.colour, self.vertices)
 
 player = Player()
 
@@ -398,6 +402,11 @@ while True:
     # draw particles
     for particle in particleList:
         particle.draw()
+
+    # draw score
+    font = pg.font.SysFont("Arial", 32)
+    text = font.render(str(score), True, (255, 255, 255))
+    screen.blit(text, (0, 0))
 
     pg.display.flip()
     clock.tick(FPS)
